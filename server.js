@@ -85,13 +85,23 @@ app.post('api/products', (req, res) => {
     message: 'product created successfully!',
     product: newProduct
   });
-  
-
-
 });
 
 // PUT /api/products/:id - Update a product
+
+app.put('api/products/:id', (req, res) => {
+  const product = products.find(p => p.id == parseInt(req.params.id));
+
+  if (!product) return res.status(404).send('Product not found!');
+});
+
 // DELETE /api/products/:id - Delete a product
+
+app.delete('api/products/:id', (req, res) => {
+  const product = products.filter(p => p.id !== parseInt(req.params.id));
+
+  if (!product) return res.send('Ops!, Dont exist this product');
+});
 
 // Example route implementation for GET /api/products
 app.get('/api/products', (req, res) => {
@@ -100,8 +110,17 @@ app.get('/api/products', (req, res) => {
 
 // TODO: Implement custom middleware for:
 // - Request logging
+
+app.use('/', (req, res, next) => {
+  res.status(200).json({message: 'Logged successfully'}),
+  next()
+})
+
 // - Authentication
+
+
 // - Error handling
+
 
 // Start the server
 app.listen(PORT, () => {
