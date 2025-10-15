@@ -6,6 +6,7 @@ const { v4: uuidv4 } = require('uuid');
 // initialize Express app
 const app = express();
 const PORT = process.env.PORT || 3000;
+const API_KEY = process.env.API_KEY || 'supersecretkey';
 
 // Custom Error Classes
 class AppError extends Error {
@@ -82,7 +83,7 @@ app.get('/', (req, res) => {
 // Authentication middleware
 const requireApiKey = (req, res, next) => {
   const apiKey = req.headers['x-api-key'];
-  if (apiKey !== 'prodx231') {
+  if (apiKey !== API_KEY) {
     return next(new AuthError('Unauthorized - Invalid API key'));
   }
   next();
