@@ -1,62 +1,138 @@
-# Express.js RESTful API Assignment
+# Express.js RESTful API — Products
 
-This assignment focuses on building a RESTful API using Express.js, implementing proper routing, middleware, and error handling.
+Small Express.js REST API for managing products. Includes request logging, API-key authentication, input validation, error handling, filtering, pagination, search, and statistics.
 
-## Assignment Overview
+Status: working example (in-memory data store)
 
-You will:
-1. Set up an Express.js server
-2. Create RESTful API routes for a product resource
-3. Implement custom middleware for logging, authentication, and validation
-4. Add comprehensive error handling
-5. Develop advanced features like filtering, pagination, and search
+## Quick start
 
-## Getting Started
+Prerequisites
+- Node.js v18+
+- npm
 
-1. Accept the GitHub Classroom assignment invitation
-2. Clone your personal repository that was created by GitHub Classroom
-3. Install dependencies:
-   ```
-   npm install
-   ```
-4. Run the server:
-   ```
-   npm start
-   ```
+Install and run
+```bash
+npm install
+npm start
+```
+Server defaults to http://localhost:3000
 
-## Files Included
+API key for protected endpoints: `prodx231` (send as header `x-api-key`)
 
-- `Week2-Assignment.md`: Detailed assignment instructions
-- `server.js`: Starter Express.js server file
-- `.env.example`: Example environment variables file
+## Endpoints
 
-## Requirements
+Base path: /api/products
 
-- Node.js (v18 or higher)
-- npm or yarn
-- Postman, Insomnia, or curl for API testing
+- GET /api/products
+  - Query params:
+    - category — filter by category (exact match, case-insensitive)
+    - q or name — search by product name (case-insensitive, substring)
+    - page — page number (default 1)
+    - limit — items per page (default 10)
+  - Response: { page, limit, total, results: [...] }
 
-## API Endpoints
+- GET /api/products/:id
+  - Get product by id (UUID or numeric id when seeded)
 
-The API will have the following endpoints:
+- POST /api/products
+  - Protected (requires `x-api-key: prodx231`)
+  - Body (JSON, all required):
+    - name (string)
+    - description (string)
+    - price (number, >= 0)
+    - category (string)
+    - inStock (boolean)
+  - Response: 201 created with created product
 
-- `GET /api/products`: Get all products
-- `GET /api/products/:id`: Get a specific product
-- `POST /api/products`: Create a new product
-- `PUT /api/products/:id`: Update a product
-- `DELETE /api/products/:id`: Delete a product
+- PUT /api/products/:id
+  - Protected
+  - Body (JSON, at least one of the fields above; partial updates allowed)
+  - Response: updated product
 
-## Submission
+- DELETE /api/products/:id
+  - Protected
+  - Response: 200 with deletion message
 
-Your work will be automatically submitted when you push to your GitHub Classroom repository. Make sure to:
+- GET /api/products/search?q=term
+  - Alias search endpoint (same behavior as ?q on list)
 
-1. Complete all the required API endpoints
-2. Implement the middleware and error handling
-3. Document your API in the README.md
-4. Include examples of requests and responses
+- GET /api/products/stats
+  - Returns total and counts by category:
+    - { total: number, byCategory: { categoryName: count, ... } }
 
-## Resources
+## Validation & Errors
 
-- [Express.js Documentation](https://expressjs.com/)
-- [RESTful API Design Best Practices](https://restfulapi.net/)
-- [HTTP Status Codes](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status) 
+- 400 ValidationError — invalid or missing input
+- 401 AuthError — missing/invalid API key for protected endpoints
+- 404 NotFoundError — resource not found
+- 500 AppError — unexpected server error
+
+Error response format:
+```json
+{ "message": "Description of the error" }
+```
+
+## Examples
+
+List products (first page)
+```bash
+curl "http://localhost:3000/api/products"
+```
+
+List filtered by category and paginated
+```bash
+curl "http://localhost:3000/api/products?category=electronics&page=1&limit=5"
+```
+
+Search products by name
+```bash
+curl "http://localhost:3000/api/products?q=laptop"
+```
+
+Get a product by id
+```bash
+curl "http://localhost:3000/api/products/<PRODUCT_ID>"
+```
+
+Create a product (requires API key)
+```bash
+curl -X POST "http://localhost:3000/api/products" \
+  -H "Content-Type: application/json" \
+  -H "x-api-key: prodx231" \
+  -d '{
+    "name":"Wireless Mouse",
+    "description":"Ergonomic wireless mouse",
+    "price":25.5,
+    "category":"electronics",
+    "inStock":true
+  }'
+```
+
+Update a product (partial update allowed)
+```bash
+curl -X PUT "http://localhost:3000/api/products/<PRODUCT_ID>" \
+  -H "Content-Type: application/json" \
+  -H "x-api-key: prodx231" \
+  -d '{"price": 30}'
+```
+
+Delete a product
+```bash
+curl -X DELETE "http://localhost:3000/api/products/<PRODUCT_ID>" \
+  -H "x-api-key: prodx231"
+```
+
+## Notes
+
+- Data is stored in memory for this example; restarting the server resets products.
+- New products use UUIDs for ids.
+- The included validation middleware enforces types and required fields for creation and safe partial updates for PUT.
+- Logging prints method, URL and timestamp to console.
+
+## Contributing / Testing
+
+This is a small learning project — open issues or pull requests in the repository. For local testing use curl, Postman or similar tools.
+
+## License
+
+ISC
