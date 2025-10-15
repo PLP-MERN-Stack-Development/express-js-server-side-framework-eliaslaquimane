@@ -46,9 +46,50 @@ app.get('/', (req, res) => {
 });
 
 // TODO: Implement the following routes:
+
 // GET /api/products - Get all products
+app.get('/api/products', (req, res) => {
+  res.json(products);
+})
+
 // GET /api/products/:id - Get a specific product
+app.get('api/products/:id', (req, res) => {
+  const product = products.find(p => p.id == req.params.id);
+  if (!product) return res.status(404).send('Product not found!');
+});
+
 // POST /api/products - Create a new product
+app.post('api/products', (req, res) => {
+  const {
+    name,
+    description,
+    price,
+    category,
+    inStock
+  } = req.body;
+
+  if (!name || !description || !price || !category || !inStock) return res.status(400).json({message: 'All input are required!'});
+
+  const newProduct = {
+    id: products.length + 1,
+    name,
+    description,
+    price,
+    category,
+    inStock
+  };
+
+  products.push(newProduct);
+
+  res.status(201).json({
+    message: 'product created successfully!',
+    product: newProduct
+  });
+  
+
+
+});
+
 // PUT /api/products/:id - Update a product
 // DELETE /api/products/:id - Delete a product
 
